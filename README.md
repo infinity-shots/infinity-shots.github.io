@@ -1,6 +1,6 @@
 # Infinity Shots
 
-**Chunk-wise Learning for Infinite Multi-Shot Video Generation**
+**Chunk-wise Learning for Infinite Multi-Shot Audio-Video Generation**
 
 A static research project website with 27 complete video examples across 14 scene categories. The page opens with four capability chapters: long-form storytelling, characters across shots, shot-level direction, and audio-visual generation. Nine representative films include timestamped prompt cues that open the viewer at the selected shot. The 14-genre explorer and full collection follow. The default collection contains 21 selected films.
 
