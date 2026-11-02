@@ -52,7 +52,9 @@
   const summary = el('p', 'iv-summary');
   const sourceNote = el('p', 'iv-source-note', 'Prompt timestamps; generated cuts may vary.');
   const playbackError = el('p', 'iv-playback-error'); playbackError.hidden = true; playbackError.setAttribute('role', 'status');
-  stage.append(videoWrap, loading, playbackError, scrubRow, timeline, playerMeta, summary, sourceNote);
+  const playerContent = el('div', 'iv-player-content');
+  playerContent.append(videoWrap, loading, playbackError, scrubRow, timeline, playerMeta, summary, sourceNote);
+  stage.append(playerContent);
 
   const panel = el('aside', 'iv-panel'); panel.setAttribute('aria-label', 'Prompts');
   const panelHead = el('div', 'iv-panel-head');
@@ -278,6 +280,15 @@
       copyStatus.textContent = language === 'zh' ? '已选中，请按 ⌘/Ctrl+C' : 'Selected. Press ⌘/Ctrl+C.';
     }
   }
+  function sizePlayer(width, height) {
+    const w = Number(width), h = Number(height);
+    const validSize = Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0;
+    const sourceWidth = validSize ? w : 864, sourceHeight = validSize ? h : 480;
+    // Display within a 480p-sized viewport, without enlarging smaller sources.
+    const scale = Math.min(1, 864 / sourceWidth, 480 / sourceHeight);
+    playerContent.style.setProperty('--iv-player-width', `${sourceWidth * scale}px`);
+    playerContent.style.setProperty('--iv-player-ratio', `${sourceWidth} / ${sourceHeight}`);
+  }
   function open(next, options = {}) {
     if (!next || !(next.video || next.src)) return;
     const requestedStart = Number(options?.startTime);
@@ -293,6 +304,7 @@
     video.setAttribute('aria-label', title.textContent); video.muted = false;
     fullLink.href = sourceURL;
     const width = item.width || item.provenance?.width, height = item.height || item.provenance?.height;
+    sizePlayer(width, height);
     specs.textContent = [width && height ? `${width} × ${height}` : null, item.fps || item.provenance?.fps ? `${item.fps || item.provenance.fps} fps` : null, Number(item.duration || item.provenance?.generated_duration) ? `${Number(item.duration || item.provenance.generated_duration).toFixed(1)} s` : null].filter(Boolean).join(' · ');
     fullDetails.open = false; playbackError.hidden = true; overlayCheck.checked = overlayEnabled;
     populatePrompts(); seekTo(startTime); document.body.style.overflow = 'hidden';
@@ -320,6 +332,7 @@
   video.addEventListener('durationchange', () => { if (dialog.open && !scrubbing) syncScrubber(pendingSeek ?? video.currentTime); });
   video.addEventListener('loadedmetadata', () => {
     if (!dialog.open || !video.getAttribute('src') || !hasMetadata()) return;
+    sizePlayer(video.videoWidth, video.videoHeight);
     setLoading('');
     if (pendingSeek != null) seekTo(pendingSeek, pendingPlay);
     else syncPlayback();
